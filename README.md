@@ -1,7 +1,7 @@
 # Out-of-Distribution Detection for Generalized Zero-Shot Action Recognition
 
 ## Overview
-This repository is the PyTorch implementation for the paper [Out-of-Distribution Detection for Generalized Zero-Shot Action Recognition](https://arxiv.org/abs/1904.08703), to be published at [CVPR 2019](http://cvpr2019.thecvf.com/).
+This repository is the PyTorch implementation for the paper [Out-of-Distribution Detection for Generalized Zero-Shot Action Recognition](https://arxiv.org/abs/1904.08703), to be published at [CVPR 2019](http://cvpr2019.thecvf.com/). This repo is based on the codebase of [f-CLSWGAN](https://www.mpi-inf.mpg.de/departments/computer-vision-and-multimodal-computing/research/zero-shot-learning/feature-generating-networks-for-zero-shot-learning/), which was originally proposed for zero-shot object classification.
 
 ## Dependencies
 1. PyTorch 0.3.1
@@ -12,9 +12,6 @@ The I3D features (concatenated RGB and Flow) for HMDB51 and UCF101 are provided 
 
 ## Running
 Shell scripts for running the baseline ZSL/GZSL experiments on HMDB51 and UCF101 datasets are provided.
-
-## Basecode
-This code is based on the codebase of [f-CLSWGAN](https://www.mpi-inf.mpg.de/departments/computer-vision-and-multimodal-computing/research/zero-shot-learning/feature-generating-networks-for-zero-shot-learning/), which was originally proposed for zero-shot object classification.
 
 ## To Do
 Integrating the entropy-based out-of-distribution code.

@@ -11,6 +11,12 @@ NGH=4096
 ATTSZ=300
 NZ=300
 
-OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES=6 python clswgan_action.py --gzsl --nclass_all 101 --dataroot data_action/ --manualSeed 806 \
+# GZSL
+python clswgan_action.py --gzsl --nclass_all 101 --dataroot data_action/ --manualSeed 806 --ngh $NGH --ndh $NDH --lambda1 $LAMBDA1 --critic_iter 5 \
 --cosem_weight $COSEM_WEIGHT --recons_weight $RECONS_WEIGHT --syn_num $SYN_NUM --preprocessing --cuda --batch_size $BATCH_SIZE --nz $NZ --attSize $ATTSZ --resSize $RESSZ --lr $LR \
---action_embedding i3d --class_embedding att --netG_name MLP_G --netD_name MLP_CRITIC --nepoch $NEPOCH --ngh $NGH --ndh $NDH --lambda1 $LAMBDA1 --critic_iter 5 --dataset ucf101 --split 1
+--action_embedding i3d --class_embedding att --netG_name MLP_G --netD_name MLP_CRITIC --nepoch $NEPOCH --dataset ucf101 --split 1
+
+# ZSL
+python clswgan_action.py --nclass_all 101 --dataroot data_action/ --manualSeed 806 --ngh $NGH --ndh $NDH --lambda1 $LAMBDA1 --critic_iter 5 \
+--cosem_weight $COSEM_WEIGHT --recons_weight $RECONS_WEIGHT --syn_num $SYN_NUM --preprocessing --cuda --batch_size $BATCH_SIZE --nz $NZ --attSize $ATTSZ --resSize $RESSZ --lr $LR \
+--action_embedding i3d --class_embedding att --netG_name MLP_G --netD_name MLP_CRITIC --nepoch $NEPOCH --dataset ucf101 --split 1

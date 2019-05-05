@@ -2,15 +2,13 @@ import numpy as np
 import scipy.io as sio
 import torch
 from sklearn import preprocessing
-import sys
 from torch.autograd import Variable
 
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Linear') != -1:
         m.weight.data.normal_(0.0, 0.02)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
+        m.bias.data.fill_(0)
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
@@ -32,15 +30,6 @@ class Logger(object):
         f = open(self.filename+'.log', "a")
         f.write(message)  
         f.close()
-
-def encode_onehot(labels, n_classes):
-    onehot = torch.FloatTensor(labels.size()[0], n_classes)
-    labels = labels.data
-    if labels.is_cuda:
-        onehot = onehot.cuda()
-    onehot.zero_()
-    onehot.scatter_(1, labels.view(-1, 1), 1)
-    return onehot        
         
 class DATA_LOADER(object):
     def __init__(self, opt):

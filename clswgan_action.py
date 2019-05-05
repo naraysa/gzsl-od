@@ -1,5 +1,4 @@
 from __future__ import print_function
-from scipy.spatial.distance import cdist
 import argparse
 import os
 import random
@@ -11,9 +10,8 @@ import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 import math
 import util 
-import copy
 import classifier2 as classifier
-import sys
+import classifier_entropy
 import model
 import numpy as np
 
@@ -26,6 +24,7 @@ parser.add_argument('--class_embedding', default='att')
 parser.add_argument('--split', type=int, default=1)
 parser.add_argument('--syn_num', type=int, default=100, help='number features to generate per class')
 parser.add_argument('--gzsl', action='store_true', default=False, help='enable generalized zero-shot learning')
+parser.add_argument('--gzsl_od', action='store_true', default=False, help='enable out-of-distribution based generalized zero-shot learning')
 parser.add_argument('--preprocessing', action='store_true', default=False, help='enbale MinMaxScaler on visual features')
 parser.add_argument('--standardization', action='store_true', default=False)
 parser.add_argument('--validation', action='store_true', default=False, help='enable cross validation mode')
@@ -210,7 +209,7 @@ for epoch in range(opt.nepoch):
             R_cost.backward()
             optimizerDec.step()
             
-            # Discriminator training
+            # Discriminator training with real
             criticD_real = netD(input_resv, input_attv)
             criticD_real = criticD_real.mean()
             criticD_real.backward(mone)
@@ -225,7 +224,7 @@ for epoch in range(opt.nepoch):
             criticD_fake = criticD_fake.mean()
             criticD_fake.backward(one)
 
-            # gradient penalty
+            # WGAN gradient penalty
             gradient_penalty = calc_gradient_penalty(netD, input_res, fake.data, input_att)
             gradient_penalty.backward()
 
@@ -293,12 +292,11 @@ for epoch in range(opt.nepoch):
         optimizerDec.step()
         
     mean_lossG /=  data.ntrain / opt.batch_size 
-    mean_lossD /=  data.ntrain / opt.batch_size
+    mean_lossD /=  opt.critic_iter * data.ntrain / opt.batch_size
     mean_lossC /=  data.ntrain / opt.batch_size
     mean_lossR /=  data.ntrain / opt.batch_size
     
-    print('[%d/%d] Loss_D: %.4f Loss_G: %.4f, Wasserstein_dist: %.4f, recons_loss:%.4f, cosEmb_loss:%.4f'
-              % (epoch, opt.nepoch, mean_lossD, mean_lossG , Wasserstein_D.data[0], mean_lossR, mean_lossC))
+    print('[%d/%d] Loss_D: %.4f Loss_G: %.4f, Wasserstein_dist: %.4f' % (epoch, opt.nepoch, mean_lossD, mean_lossG, Wasserstein_D.data[0]))
        
     # set to evaluation mode
     netG.eval()
@@ -306,16 +304,22 @@ for epoch in range(opt.nepoch):
     
     # Synthesize unseen class samples
     syn_feature, syn_label = generate_syn_feature(netG, data.unseenclasses, data.attribute, opt.syn_num)
-    if opt.gzsl:
+    if opt.gzsl_od:
+        # OD based GZSL
+        seen_class = data.seenclasses.size(0)
+        clsu = classifier.CLASSIFIER(syn_feature, util.map_label(syn_label, data.unseenclasses), data, data.unseenclasses.size(0), opt.cuda, _nepoch=25, _batch_size=opt.syn_num)
+        clss = classifier.CLASSIFIER(data.train_feature, util.map_label(data.train_label,data.seenclasses), data, seen_class, opt.cuda, _nepoch=25, _batch_size=opt.syn_num, test_on_seen=True)
+        clsg = classifier_entropy.CLASSIFIER(data.train_feature, util.map_label(data.train_label,data.seenclasses), data, seen_class, syn_feature, syn_label, opt.cuda, clss, clsu, _batch_size=128)
+        print('GZSL-OD: Acc seen=%.4f, Acc unseen=%.4f, h=%.4f' % (clsg.acc_seen, clsg.acc_unseen, clsg.H))
+    elif opt.gzsl:
         # Generalized zero-shot learning    
         train_X = torch.cat((data.train_feature, syn_feature), 0)
         train_Y = torch.cat((data.train_label, syn_label), 0)
         nclass = opt.nclass_all   
-        clsg = classifier.CLASSIFIER(train_X, train_Y, data, nclass, opt.cuda, _lr=0.001, _beta1=0.5, _nepoch=25, _batch_size=opt.syn_num, generalized=True, test_on_seen=False)
-        print('GZSL: Acc seen=%.4f, Acc unseen=%.4f, h=%.4f' % (clsg.acc_seen, clsg.acc_unseen, clsg.H))  
-        
+        clsg = classifier.CLASSIFIER(train_X, train_Y, data, nclass, opt.cuda, _nepoch=25, _batch_size=opt.syn_num, generalized=True)
+        print('GZSL: Acc seen=%.4f, Acc unseen=%.4f, h=%.4f' % (clsg.acc_seen, clsg.acc_unseen, clsg.H))
     else:
         # Zero-shot learning
-        clsz = classifier.CLASSIFIER(syn_feature, util.map_label(syn_label, data.unseenclasses), data, data.unseenclasses.size(0), opt.cuda, _lr=0.001, _beta1=0.5, _nepoch=25, _batch_size=opt.syn_num, generalized=False, test_on_seen=False)
+        clsz = classifier.CLASSIFIER(syn_feature, util.map_label(syn_label, data.unseenclasses), data, data.unseenclasses.size(0), opt.cuda, _nepoch=25, _batch_size=opt.syn_num)
         print('ZSL: Acc unseen=%.4f' % (clsz.acc))
      

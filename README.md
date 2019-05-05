@@ -11,10 +11,7 @@ This repository is the PyTorch implementation for the paper [Out-of-Distribution
 The I3D features (concatenated RGB and Flow) for HMDB51 and UCF101 are provided [here](https://drive.google.com/open?id=15Fge1p6a4ZZ7ZQCXYzPSFSQXN8XvZrAe). Place the unzipped sub-folders under data_action folder before running the experiments.
 
 ## Running
-Shell scripts for running the baseline ZSL/GZSL experiments on HMDB51 and UCF101 datasets are provided.
-
-## To Do
-Integrating the entropy-based out-of-distribution code.
+Shell scripts for running the baseline ZSL/GZSL/GZSL-OD experiments on HMDB51 and UCF101 datasets are provided.
 
 ## Citation
 Please cite the following work if you use this package.
@@ -28,6 +25,6 @@ Please cite the following work if you use this package.
 ```
 
 ## Contact 
-Please contact the first author of the paper - Devraj Mandal (devrajm@iisc.ac.in) for any further queries.
+Please contact Devraj Mandal (devrajm@iisc.ac.in) for any further queries.
 
 

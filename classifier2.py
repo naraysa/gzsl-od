@@ -4,14 +4,11 @@ from torch.autograd import Variable
 import torch.optim as optim
 import numpy as np
 import util
-from sklearn.preprocessing import MinMaxScaler 
-import sys
-import pdb
 import copy
 
 class CLASSIFIER:
     # train_Y is interger 
-    def __init__(self, _train_X, _train_Y, data_loader, _nclass, _cuda, _lr=0.001, _beta1=0.5, _nepoch=20, _batch_size=100, generalized=True, test_on_seen=False):
+    def __init__(self, _train_X, _train_Y, data_loader, _nclass, _cuda, _lr=0.001, _beta1=0.5, _nepoch=20, _batch_size=100, generalized=False, test_on_seen=False):
         self.train_X =  _train_X 
         self.train_Y = _train_Y 
         self.test_seen_feature = data_loader.test_seen_feature
